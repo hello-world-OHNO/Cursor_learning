@@ -11,6 +11,10 @@ import {
   Card,
   CardContent,
   Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import title from "./utils/constants";
 import { useState, useEffect } from "react";
@@ -19,11 +23,12 @@ export default function Home() {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [questions, setQuestions] = useState<typeof title>([]);
   const [userAnswer, setUserAnswer] = useState("");
-  const [timeLeft, setTimeLeft] = useState(15);
+  const [timeLeft, setTimeLeft] = useState(30);
   const [score, setScore] = useState(0);
   const [gameOver, setGameOver] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
   const [showError, setShowError] = useState(false);
+  const [showAnswer, setShowAnswer] = useState(false);
 
   useEffect(() => {
     const shuffled = [...title].sort(() => 0.5 - Math.random());
@@ -37,7 +42,7 @@ export default function Home() {
       }, 1000);
       return () => clearInterval(timer);
     } else if (timeLeft === 0 && !gameOver && gameStarted) {
-      handleNextQuestion();
+      setShowAnswer(true);
     }
   }, [timeLeft, gameOver, gameStarted]);
 
@@ -60,12 +65,18 @@ export default function Home() {
   const handleNextQuestion = () => {
     if (currentQuestion < 9) {
       setCurrentQuestion((prev) => prev + 1);
-      setTimeLeft(15);
+      setTimeLeft(30);
       setUserAnswer("");
       setShowError(false);
+      setShowAnswer(false);
     } else {
       setGameOver(true);
     }
+  };
+
+  const handleCloseAnswer = () => {
+    setShowAnswer(false);
+    handleNextQuestion();
   };
 
   const startGame = () => {
@@ -229,7 +240,7 @@ export default function Home() {
         <Box sx={{ mt: 3 }}>
           <LinearProgress
             variant="determinate"
-            value={(timeLeft / 15) * 100}
+            value={(timeLeft / 30) * 100}
             sx={{
               height: 12,
               borderRadius: 6,
@@ -379,6 +390,66 @@ export default function Home() {
             </form>
           </CardContent>
         </Card>
+        <Dialog
+          open={showAnswer}
+          onClose={handleCloseAnswer}
+          PaperProps={{
+            sx: {
+              background: "linear-gradient(45deg, #F44336 30%, #FF8A65 90%)",
+              color: "white",
+              borderRadius: 4,
+            },
+          }}
+        >
+          <DialogTitle
+            sx={{
+              fontFamily: "Noto Sans JP, sans-serif",
+              fontWeight: 700,
+              fontSize: "1.5rem",
+            }}
+          >
+            時間切れ！
+          </DialogTitle>
+          <DialogContent>
+            <Typography
+              variant="h6"
+              sx={{
+                fontFamily: "Noto Sans JP, sans-serif",
+                fontWeight: 500,
+                mb: 2,
+              }}
+            >
+              正解は:
+            </Typography>
+            <Typography
+              variant="h4"
+              sx={{
+                fontFamily: "Noto Sans JP, sans-serif",
+                fontWeight: 700,
+                color: "#FFEB3B",
+                textAlign: "center",
+              }}
+            >
+              {questions[currentQuestion].answer[0]}
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={handleCloseAnswer}
+              sx={{
+                color: "white",
+                fontFamily: "Noto Sans JP, sans-serif",
+                fontWeight: 700,
+                fontSize: "1.1rem",
+                "&:hover": {
+                  backgroundColor: "rgba(255, 255, 255, 0.1)",
+                },
+              }}
+            >
+              次の問題へ
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Paper>
     </Container>
   );
